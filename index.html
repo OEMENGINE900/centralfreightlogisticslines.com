@@ -681,44 +681,11 @@
 </footer>
 
 <script>
-// ── SHIPPING DATABASE ──
-const shipments = {
-  "CFL-2025-10947": {
-    id: "CFL-2025-10947",
-    origin: "Atlanta, GA",
-    destination: "Prince Frederick, MD",
-    destAddress: "109 Auto Dr, Prince Frederick MD 20678",
-    status: "DELIVERED",
-    weight: "1,840 lbs · Class 85",
-    eta: "ETA: Delivered Mar 19",
-    events: [
-      { time: "Mar 14 · 09:14 EST", status: "Shipment Picked Up", location: "Atlanta, GA 30341", state: "done" },
-      { time: "Mar 14 · 18:45 EST", status: "Departed Origin Terminal", location: "Atlanta, GA — CFL Terminal #4", state: "done" },
-      { time: "Mar 15 · 23:30 EST", status: "Arrived at Relay Terminal", location: "Charlotte, NC — CFL Terminal #9", state: "done" },
-      { time: "Mar 16 · 06:10 EST", status: "Departed Relay Terminal", location: "Charlotte, NC", state: "done" },
-      { time: "Mar 18 · 14:22 EST", status: "Out for Delivery", location: "Prince Frederick, MD — Last Mile Hub", state: "done" },
-      { time: "Mar 19 · 10:47 EST", status: "Delivered — Proof of Delivery Obtained", location: "109 Auto Dr, Prince Frederick MD 20678", state: "done" },
-    ]
-  },
-  "CFL-2025-10948": {
-    id: "CFL-2025-10948",
-    origin: "Memphis, TN",
-    destination: "Jacksonville, FL",
-    destAddress: "Jacksonville, FL 32099",
-    status: "IN TRANSIT",
-    weight: "620 lbs · Class 70",
-    eta: "ETA: Apr 29",
-    events: [
-      { time: "Apr 26 · 11:00 EST", status: "Shipment Picked Up", location: "Memphis, TN", state: "done" },
-      { time: "Apr 26 · 20:30 EST", status: "Departed Origin Terminal", location: "Memphis, TN — CFL Terminal #2", state: "done" },
-      { time: "Apr 27 · 08:15 EST", status: "In Transit — On Route", location: "Birmingham, AL", state: "active" },
-      { time: "Apr 28 · ~18:00 EST", status: "Expected Relay Arrival", location: "Atlanta, GA — CFL Terminal #4", state: "pending" },
-      { time: "Apr 29 · ~10:00 EST", status: "Estimated Delivery", location: "Jacksonville, FL", state: "pending" },
-    ]
-  }
-};
+// ── SUPABASE CONFIG ──
+const SB_URL = 'https://sbbtsofbpzlisdyojgtr.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiYnRzb2ZicHpsaXNkeW9qZ3RyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDY2NDcsImV4cCI6MjA5Mjg4MjY0N30.wdh2gNTu_OeO-yR2ycapPgg6bNw3JBVHJ9Ene-0ADw8';
 
-function trackShipment() {
+async function trackShipment() {
   const raw = document.getElementById('trackInput').value.trim().toUpperCase();
   const result = document.getElementById('trackResult');
   const notFound = document.getElementById('notFound');
@@ -728,34 +695,44 @@ function trackShipment() {
   notFound.classList.remove('visible');
   tl.innerHTML = '';
 
-  const data = shipments[raw];
-  if (!data) {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/shipments?id=eq.${raw}&select=*`, {
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
+    });
+    const rows = await res.json();
+    if (!rows.length) { notFound.classList.add('visible'); return; }
+    const data = rows[0];
+
+    const evRes = await fetch(`${SB_URL}/rest/v1/tracking_events?shipment_id=eq.${raw}&order=sort_order.asc&select=*`, {
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
+    });
+    const events = await evRes.json();
+
+    document.getElementById('trId').textContent = data.id;
+    document.getElementById('trOrigin').textContent = data.origin;
+    document.getElementById('trDest').textContent = data.destination;
+    const sb = document.getElementById('trStatus');
+    sb.textContent = data.status;
+    sb.className = 'badge ' + (data.status === 'DELIVERED' ? 'badge-green' : 'badge-amber');
+    document.getElementById('trWeight').textContent = data.weight || '';
+    document.getElementById('trEta').textContent = data.eta || '';
+
+    events.forEach(ev => {
+      const item = document.createElement('div');
+      item.className = 'tl-item';
+      item.innerHTML = `
+        <div class="tl-dot ${ev.state}"></div>
+        <div class="tl-time">${ev.event_time || ''}</div>
+        <div class="tl-status">${ev.status}</div>
+        <div class="tl-location">${ev.location || ''}</div>
+      `;
+      tl.appendChild(item);
+    });
+
+    result.classList.add('visible');
+  } catch(e) {
     notFound.classList.add('visible');
-    return;
   }
-
-  document.getElementById('trId').textContent = data.id;
-  document.getElementById('trOrigin').textContent = data.origin;
-  document.getElementById('trDest').textContent = data.destination;
-  const sb = document.getElementById('trStatus');
-  sb.textContent = data.status;
-  sb.className = 'badge ' + (data.status === 'DELIVERED' ? 'badge-green' : 'badge-amber');
-  document.getElementById('trWeight').textContent = data.weight;
-  document.getElementById('trEta').textContent = data.eta;
-
-  data.events.forEach(ev => {
-    const item = document.createElement('div');
-    item.className = 'tl-item';
-    item.innerHTML = `
-      <div class="tl-dot ${ev.state}"></div>
-      <div class="tl-time">${ev.time}</div>
-      <div class="tl-status">${ev.status}</div>
-      <div class="tl-location">${ev.location}</div>
-    `;
-    tl.appendChild(item);
-  });
-
-  result.classList.add('visible');
 }
 
 // ── ENTER KEY ON TRACK ──
