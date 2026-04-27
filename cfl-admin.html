@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CFL Admin — Central Freight Logistics Lines</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --black: #0a0a0a;
+    --charcoal: #141414;
+    --steel: #1e1e1e;
+    --card: #242424;
+    --border: #2e2e2e;
+    --mid: #555;
+    --muted: #777;
+    --white: #f0ede8;
+    --cream: #ccc;
+    --amber: #f5a623;
+    --amber-dim: #b87d1a;
+    --red: #e74c3c;
+    --green: #2ecc71;
+    --blue: #3498db;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  #loginScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(245,166,35,0.07) 0%, transparent 70%),
+      var(--black);
+  }
+  .login-box {
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid var(--border);
+    background: var(--charcoal);
+    padding: 40px;
+  }
+  .login-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.06em;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+  .login-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .login-err {
+    background: rgba(231,76,60,0.12);
+    border: 1px solid var(--red);
+    color: var(--red);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .login-err.visible { display: block; }
+
+  /* ── MAIN LAYOUT ── */
+  #appScreen { display: none; flex: 1; }
+  #appScreen.visible { display: flex; flex-direction: column; }
+
+  .topbar {
+    background: var(--charcoal);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .tb-left { display: flex; align-items: center; gap: 14px; }
+  .tb-badge {
+    background: var(--amber);
+    color: var(--black);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+  }
+  .tb-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.06em;
+    color: var(--white);
+  }
+  .tb-right { display: flex; align-items: center; gap: 20px; }
+  .tb-stat {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .tb-stat strong { color: var(--amber); }
+
+  .logout-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--charcoal);
+    padding: 0 28px;
+  }
+  .tab-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--white); }
+  .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  /* ── CONTENT ── */
+  .content { flex: 1; padding: 28px; overflow-y: auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeUp 0.25s ease; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .card-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  /* ── FORMS ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-full { grid-column: 1 / -1; }
+  .fg {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .fg label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .fg input, .fg select, .fg textarea {
+    background: var(--steel);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--amber); }
+  .fg input::placeholder, .fg textarea::placeholder { color: var(--mid); }
+  .fg select option { background: var(--steel); }
+
+  .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-amber { background: var(--amber); color: var(--black); }
+  .btn-amber:hover { background: var(--amber-dim); }
+  .btn-red { background: transparent; border: 1px solid var(--red); color: var(--red); }
+  .btn-red:hover { background: rgba(231,76,60,0.1); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--amber); color: var(--amber); }
+  .btn-sm { padding: 7px 14px; font-size: 10px; }
+
+  .form-actions { display: flex; gap: 12px; align-items: center; margin-top: 20px; }
+
+  .toast {
+    display: none;
+    padding: 10px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    margin-top: 14px;
+    border: 1px solid;
+  }
+  .toast.visible { display: block; animation: fadeUp 0.2s ease; }
+  .toast.success { border-color: var(--green); color: var(--green); background: rgba(46,204,113,0.07); }
+  .toast.error { border-color: var(--red); color: var(--red); background: rgba(231,76,60,0.07); }
+
+  /* ── SHIPMENT TABLE ── */
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--amber); }
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+  td { padding: 12px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .td-id { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em; color: var(--amber); }
+  .td-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid;
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .status-delivered { border-color: var(--green); color: var(--green); }
+  .status-transit { border-color: var(--amber); color: var(--amber); }
+  .status-pickup { border-color: var(--blue); color: var(--blue); }
+  .status-pending { border-color: var(--muted); color: var(--muted); }
+  .td-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .empty-state {
+    text-align: center;
+    padding: 48px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  /* ── EVENT TABLE ── */
+  .events-section { margin-top: 16px; }
+  .events-section h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .events-section h4::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .ev-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 180px 90px 40px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ev-row:last-child { border-bottom: none; }
+  .ev-row span { font-size: 12px; }
+  .ev-state-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .dot-done { background: var(--amber); }
+  .dot-active { background: transparent; border: 2px solid var(--amber); }
+  .dot-pending { background: var(--steel); border: 2px solid var(--border); }
+
+  /* ── SETTINGS ── */
+  .config-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .config-row:last-child { border-bottom: none; }
+  .config-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    width: 160px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .config-row input {
+    flex: 1;
+    background: var(--steel);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .config-row input:focus { border-color: var(--amber); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── CONFIRM MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 28px;
+    max-width: 380px;
+    width: 90%;
+  }
+  .modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+  .modal-actions { display: flex; gap: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ LOGIN ══════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Central Freight</div>
+    <div class="login-sub">Admin Portal · Logistics Lines</div>
+    <div class="login-err" id="loginErr">✕ &nbsp; Incorrect password. Try again.</div>
+    <div class="fg" style="margin-bottom:14px;">
+      <label>Supabase URL</label>
+      <input type="text" id="cfgUrl" placeholder="https://xxxx.supabase.co" />
+    </div>
+    <div class="fg" style="margin-bottom:14px;">
+      <label>Supabase Anon Key</label>
+      <input type="password" id="cfgKey" placeholder="eyJ..." />
+    </div>
+    <div class="fg" style="margin-bottom:20px;">
+      <label>Admin Password</label>
+      <input type="password" id="adminPass" placeholder="Enter admin password" />
+    </div>
+    <button class="btn btn-amber" style="width:100%;" onclick="doLogin()">→ &nbsp;Sign In</button>
+    <p style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;">Default password: <strong style="color:var(--amber)">cfl-admin-2025</strong> — change in Settings after login.</p>
+  </div>
+</div>
+
+<!-- ══════════════════ APP ══════════════════ -->
+<div id="appScreen">
+
+  <div class="topbar">
+    <div class="tb-left">
+      <span class="tb-badge">Admin</span>
+      <span class="tb-title">CFL Dispatch Console</span>
+    </div>
+    <div class="tb-right">
+      <span class="tb-stat">Shipments: <strong id="statTotal">—</strong></span>
+      <span class="tb-stat">In Transit: <strong id="statTransit">—</strong></span>
+      <span class="tb-stat">Delivered: <strong id="statDelivered">—</strong></span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('shipments')">All Shipments</button>
+    <button class="tab-btn" onclick="switchTab('new')">+ New Shipment</button>
+    <button class="tab-btn" onclick="switchTab('event')">+ Add Event</button>
+    <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ── ALL SHIPMENTS ── -->
+    <div class="tab-panel active" id="tab-shipments">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div class="card-title">All Shipments</div>
+            <div class="card-sub">Click a row to view events</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadShipments()">↻ Refresh</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tracking ID</th>
+                <th>Origin</th>
+                <th>Destination</th>
+                <th>Status</th>
+                <th>Weight</th>
+                <th>ETA</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="shipmentsBody">
+              <tr><td colspan="7" class="empty-state">Loading shipments…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Events detail -->
+      <div class="card" id="eventsCard" style="display:none;">
+        <div class="card-title" id="evCardTitle">Events</div>
+        <div class="card-sub" id="evCardSub">—</div>
+        <div class="events-section">
+          <h4>Timeline</h4>
+          <div id="eventsBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NEW SHIPMENT ── -->
+    <div class="tab-panel" id="tab-new">
+      <div class="card">
+        <div class="card-title">Create New Shipment</div>
+        <div class="card-sub">Generates a tracking number automatically</div>
+
+        <div class="form-grid">
+          <div class="fg">
+            <label>Tracking ID (auto-generated)</label>
+            <input type="text" id="newId" placeholder="CFL-2025-XXXXX" readonly style="opacity:0.5;cursor:default;" />
+          </div>
+          <div class="fg">
+            <label>Status</label>
+            <select id="newStatus">
+              <option value="PENDING PICKUP">PENDING PICKUP</option>
+              <option value="IN TRANSIT">IN TRANSIT</option>
+              <option value="OUT FOR DELIVERY">OUT FOR DELIVERY</option>
+              <option value="DELIVERED">DELIVERED</option>
+              <option value="EXCEPTION">EXCEPTION</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Origin City, State</label>
+            <input type="text" id="newOrigin" placeholder="Atlanta, GA" />
+          </div>
+          <div class="fg">
+            <label>Destination City, State</label>
+            <input type="text" id="newDest" placeholder="Prince Frederick, MD" />
+          </div>
+          <div class="fg form-full">
+            <label>Full Destination Address</label>
+            <input type="text" id="newDestAddr" placeholder="109 Auto Dr, Prince Frederick MD 20678" />
+          </div>
+          <div class="fg">
+            <label>Weight &amp; Class</label>
+            <input type="text" id="newWeight" placeholder="1,840 lbs · Class 85" />
+          </div>
+          <div class="fg">
+            <label>ETA Display Text</label>
+            <input type="text" id="newEta" placeholder="ETA: May 1" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-amber" onclick="createShipment()">→ &nbsp;Create Shipment</button>
+          <button class="btn btn-ghost" onclick="resetNewForm()">Reset</button>
+          <div class="toast" id="newToast"></div>
+        </div>
+      </div>
+
+      <!-- Add first event inline -->
+      <div class="card">
+        <div class="card-title">Add First Tracking Event</div>
+        <div class="card-sub">Optional — add the pickup event right away</div>
+        <div class="form-grid three">
+          <div class="fg">
+            <label>Shipment ID</label>
+            <input type="text" id="ev1Id" placeholder="CFL-2025-XXXXX" />
+          </div>
+          <div class="fg">
+            <label>Time</label>
+            <input type="text" id="ev1Time" placeholder="Apr 27 · 09:00 EST" />
+          </div>
+          <div class="fg">
+            <label>State</label>
+            <select id="ev1State">
+              <option value="done">Done ✓</option>
+              <option value="active">Active (pulsing)</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+          <div class="fg form-full">
+            <label>Status Description</label>
+            <input type="text" id="ev1Status" placeholder="Shipment Picked Up" />
+          </div>
+          <div class="fg form-full">
+            <label>Location</label>
+            <input type="text" id="ev1Location" placeholder="Atlanta, GA 30341" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="addFirstEvent()">+ &nbsp;Add Event</button>
+          <div class="toast" id="ev1Toast"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADD EVENT ── -->
+    <div class="tab-panel" id="tab-event">
+      <div class="card">
+        <div class="card-title">Add Tracking Event</div>
+        <div class="card-sub">Append a new milestone to any shipment's timeline</div>
+
+        <div class="form-grid three">
+          <div class="fg">
+            <label>Shipment ID</label>
+            <input type="text" id="evId" placeholder="CFL-2025-10947" />
+          </div>
+          <div class="fg">
+            <label>Time</label>
+            <input type="text" id="evTime" placeholder="Apr 28 · 14:00 EST" />
+          </div>
+          <div class="fg">
+            <label>State</label>
+            <select id="evState">
+              <option value="done">Done ✓</option>
+              <option value="active">Active (pulsing)</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+          <div class="fg form-full">
+            <label>Status Description</label>
+            <input type="text" id="evStatus" placeholder="Departed Origin Terminal" />
+          </div>
+          <div class="fg form-full">
+            <label>Location</label>
+            <input type="text" id="evLocation" placeholder="Atlanta, GA — CFL Terminal #4" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-amber" onclick="addEvent()">+ &nbsp;Add Event</button>
+          <div class="toast" id="evToast"></div>
+        </div>
+      </div>
+
+      <!-- Update shipment status -->
+      <div class="card">
+        <div class="card-title">Update Shipment Status</div>
+        <div class="card-sub">Change the top-level status badge on a shipment</div>
+        <div class="form-grid">
+          <div class="fg">
+            <label>Shipment ID</label>
+            <input type="text" id="updId" placeholder="CFL-2025-10947" />
+          </div>
+          <div class="fg">
+            <label>New Status</label>
+            <select id="updStatus">
+              <option value="PENDING PICKUP">PENDING PICKUP</option>
+              <option value="IN TRANSIT">IN TRANSIT</option>
+              <option value="OUT FOR DELIVERY">OUT FOR DELIVERY</option>
+              <option value="DELIVERED">DELIVERED</option>
+              <option value="EXCEPTION">EXCEPTION</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>New ETA Text</label>
+            <input type="text" id="updEta" placeholder="ETA: Apr 29" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-amber" onclick="updateStatus()">↑ &nbsp;Update Status</button>
+          <div class="toast" id="updToast"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="card">
+        <div class="card-title">Configuration</div>
+        <div class="card-sub">Saved in browser localStorage</div>
+
+        <div class="config-row">
+          <span class="config-label">Supabase URL</span>
+          <input type="text" id="settUrl" />
+        </div>
+        <div class="config-row">
+          <span class="config-label">Supabase Key</span>
+          <input type="password" id="settKey" />
+        </div>
+        <div class="config-row">
+          <span class="config-label">Admin Password</span>
+          <input type="password" id="settPass" placeholder="New password" />
+        </div>
+
+        <div class="form-actions" style="margin-top:20px;">
+          <button class="btn btn-amber" onclick="saveSettings()">Save Settings</button>
+          <div class="toast" id="settToast"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Delete Shipment</div>
+        <div class="card-sub">Permanently removes shipment and all its events</div>
+        <div class="form-grid">
+          <div class="fg">
+            <label>Shipment ID to Delete</label>
+            <input type="text" id="delId" placeholder="CFL-2025-XXXXX" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-red" onclick="confirmDelete()">✕ &nbsp;Delete Shipment</button>
+          <div class="toast" id="delToast"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /appScreen -->
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h3>Confirm Delete</h3>
+    <p id="confirmMsg">Are you sure? This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-red" onclick="execDelete()">Yes, Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let SB_URL = '', SB_KEY = '', ADMIN_PASS = '';
+const DEFAULT_PASS = 'cfl-admin-2025';
+let deleteTarget = null;
+
+// ── INIT ──
+window.onload = () => {
+  SB_URL   = localStorage.getItem('cfl_url')  || '';
+  SB_KEY   = localStorage.getItem('cfl_key')  || '';
+  ADMIN_PASS = localStorage.getItem('cfl_pass') || DEFAULT_PASS;
+
+  if (SB_URL) document.getElementById('cfgUrl').value = SB_URL;
+  if (SB_KEY) document.getElementById('cfgKey').value = SB_KEY;
+
+  generateId();
+};
+
+// ── AUTH ──
+function doLogin() {
+  const url  = document.getElementById('cfgUrl').value.trim();
+  const key  = document.getElementById('cfgKey').value.trim();
+  const pass = document.getElementById('adminPass').value;
+
+  if (pass !== ADMIN_PASS) {
+    document.getElementById('loginErr').classList.add('visible');
+    return;
+  }
+  SB_URL = url; SB_KEY = key;
+  localStorage.setItem('cfl_url', url);
+  localStorage.setItem('cfl_key', key);
+
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').classList.add('visible');
+  document.getElementById('settUrl').value = url;
+  document.getElementById('settKey').value = key;
+  loadShipments();
+}
+
+function doLogout() {
+  document.getElementById('appScreen').classList.remove('visible');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('adminPass').value = '';
+}
+
+document.getElementById('adminPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ── SUPABASE HELPERS ──
+async function sb(path, opts = {}) {
+  const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: {
+      apikey: SB_KEY,
+      Authorization: `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+      ...opts.headers
+    },
+    ...opts
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || res.statusText);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'shipments') loadShipments();
+}
+
+// ── LOAD SHIPMENTS ──
+async function loadShipments() {
+  const tbody = document.getElementById('shipmentsBody');
+  tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Loading…</td></tr>';
+  document.getElementById('eventsCard').style.display = 'none';
+
+  try {
+    const rows = await sb('shipments?order=created_at.desc&select=*');
+
+    // stats
+    document.getElementById('statTotal').textContent = rows.length;
+    document.getElementById('statTransit').textContent = rows.filter(r => r.status === 'IN TRANSIT' || r.status === 'OUT FOR DELIVERY').length;
+    document.getElementById('statDelivered').textContent = rows.filter(r => r.status === 'DELIVERED').length;
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No shipments yet. Create one →</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td class="td-id">${r.id}</td>
+        <td>${r.origin}</td>
+        <td>${r.destination}</td>
+        <td><span class="td-status ${statusClass(r.status)}">${r.status}</span></td>
+        <td style="font-size:12px;color:var(--muted);">${r.weight || '—'}</td>
+        <td style="font-size:12px;color:var(--muted);">${r.eta || '—'}</td>
+        <td class="td-actions">
+          <button class="btn btn-ghost btn-sm" onclick="viewEvents('${r.id}','${r.origin}','${r.destination}')">Events</button>
+          <button class="btn btn-ghost btn-sm" onclick="prefillEvent('${r.id}')">+ Event</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:var(--red);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function statusClass(s) {
+  if (s === 'DELIVERED') return 'status-delivered';
+  if (s === 'IN TRANSIT' || s === 'OUT FOR DELIVERY') return 'status-transit';
+  if (s === 'PENDING PICKUP') return 'status-pickup';
+  return 'status-pending';
+}
+
+// ── VIEW EVENTS ──
+async function viewEvents(id, origin, dest) {
+  const card = document.getElementById('eventsCard');
+  const body = document.getElementById('eventsBody');
+  document.getElementById('evCardTitle').textContent = id;
+  document.getElementById('evCardSub').textContent = `${origin} → ${dest}`;
+  body.innerHTML = '<p style="color:var(--muted);font-size:12px;">Loading…</p>';
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  try {
+    const evs = await sb(`tracking_events?shipment_id=eq.${id}&order=sort_order.asc&select=*`);
+    if (!evs.length) {
+      body.innerHTML = '<p style="color:var(--muted);font-size:12px;font-family:IBM Plex Mono,monospace;">No events yet.</p>';
+      return;
+    }
+    body.innerHTML = evs.map(ev => `
+      <div class="ev-row">
+        <span style="font-family:IBM Plex Mono,monospace;font-size:11px;color:var(--muted);">${ev.event_time}</span>
+        <span>${ev.status}</span>
+        <span style="font-size:11px;color:var(--muted);">${ev.location || ''}</span>
+        <span><span class="ev-state-dot dot-${ev.state}"></span>&nbsp;${ev.state}</span>
+        <button class="btn btn-red btn-sm" onclick="deleteEvent(${ev.id})" title="Delete event">✕</button>
+      </div>
+    `).join('');
+  } catch (e) {
+    body.innerHTML = `<p style="color:var(--red);font-size:12px;">${e.message}</p>`;
+  }
+}
+
+async function deleteEvent(evId) {
+  if (!confirm('Delete this event?')) return;
+  try {
+    await sb(`tracking_events?id=eq.${evId}`, { method: 'DELETE' });
+    // re-load current events card
+    const title = document.getElementById('evCardTitle').textContent;
+    const sub = document.getElementById('evCardSub').textContent.split(' → ');
+    await viewEvents(title, sub[0], sub[1]);
+  } catch (e) { alert('Error: ' + e.message); }
+}
+
+// ── CREATE SHIPMENT ──
+function generateId() {
+  const num = Math.floor(10000 + Math.random() * 90000);
+  const id = `CFL-${new Date().getFullYear()}-${num}`;
+  document.getElementById('newId').value = id;
+  return id;
+}
+
+function resetNewForm() {
+  ['newOrigin','newDest','newDestAddr','newWeight','newEta'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('newStatus').value = 'PENDING PICKUP';
+  generateId();
+  showToast('newToast', '', '');
+}
+
+async function createShipment() {
+  const id     = document.getElementById('newId').value;
+  const origin = document.getElementById('newOrigin').value.trim();
+  const dest   = document.getElementById('newDest').value.trim();
+  const addr   = document.getElementById('newDestAddr').value.trim();
+  const status = document.getElementById('newStatus').value;
+  const weight = document.getElementById('newWeight').value.trim();
+  const eta    = document.getElementById('newEta').value.trim();
+
+  if (!origin || !dest) { showToast('newToast', 'error', 'Origin and Destination are required.'); return; }
+
+  try {
+    await sb('shipments', {
+      method: 'POST',
+      body: JSON.stringify({ id, origin, destination: dest, dest_address: addr, status, weight, eta })
+    });
+    showToast('newToast', 'success', `✓ Shipment ${id} created.`);
+    document.getElementById('ev1Id').value = id;
+    generateId();
+  } catch (e) { showToast('newToast', 'error', '✕ ' + e.message); }
+}
+
+async function addFirstEvent() {
+  const payload = buildEventPayload('ev1');
+  if (!payload) return;
+  try {
+    const existing = await sb(`tracking_events?shipment_id=eq.${payload.shipment_id}&select=sort_order&order=sort_order.desc&limit=1`);
+    payload.sort_order = existing.length ? existing[0].sort_order + 1 : 1;
+    await sb('tracking_events', { method: 'POST', body: JSON.stringify(payload) });
+    showToast('ev1Toast', 'success', '✓ Event added.');
+  } catch (e) { showToast('ev1Toast', 'error', '✕ ' + e.message); }
+}
+
+// ── ADD EVENT ──
+function prefillEvent(id) {
+  switchTab('event');
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===2));
+  document.getElementById('evId').value = id;
+  document.getElementById('updId').value = id;
+}
+
+function buildEventPayload(prefix) {
+  const shipment_id = document.getElementById(prefix+'Id').value.trim().toUpperCase();
+  const event_time  = document.getElementById(prefix+'Time').value.trim();
+  const status      = document.getElementById(prefix+'Status').value.trim();
+  const location    = document.getElementById(prefix+'Location').value.trim();
+  const state       = document.getElementById(prefix+'State').value;
+  if (!shipment_id || !status) { showToast(prefix+'Toast', 'error', 'Shipment ID and Status are required.'); return null; }
+  return { shipment_id, event_time, status, location, state };
+}
+
+async function addEvent() {
+  const payload = buildEventPayload('ev');
+  if (!payload) return;
+  try {
+    const existing = await sb(`tracking_events?shipment_id=eq.${payload.shipment_id}&select=sort_order&order=sort_order.desc&limit=1`);
+    payload.sort_order = existing.length ? existing[0].sort_order + 1 : 1;
+    await sb('tracking_events', { method: 'POST', body: JSON.stringify(payload) });
+    showToast('evToast', 'success', `✓ Event added to ${payload.shipment_id}.`);
+    ['evTime','evStatus','evLocation'].forEach(id => document.getElementById(id).value = '');
+  } catch (e) { showToast('evToast', 'error', '✕ ' + e.message); }
+}
+
+// ── UPDATE STATUS ──
+async function updateStatus() {
+  const id     = document.getElementById('updId').value.trim().toUpperCase();
+  const status = document.getElementById('updStatus').value;
+  const eta    = document.getElementById('updEta').value.trim();
+  if (!id) { showToast('updToast', 'error', 'Shipment ID required.'); return; }
+  try {
+    const body = { status };
+    if (eta) body.eta = eta;
+    await sb(`shipments?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+    showToast('updToast', 'success', `✓ ${id} updated to ${status}.`);
+  } catch (e) { showToast('updToast', 'error', '✕ ' + e.message); }
+}
+
+// ── DELETE ──
+function confirmDelete() {
+  const id = document.getElementById('delId').value.trim().toUpperCase();
+  if (!id) { showToast('delToast', 'error', 'Enter a Shipment ID.'); return; }
+  deleteTarget = id;
+  document.getElementById('confirmMsg').textContent = `Delete ${id} and all its tracking events? This cannot be undone.`;
+  document.getElementById('confirmModal').classList.add('visible');
+}
+
+async function execDelete() {
+  closeModal();
+  try {
+    await sb(`tracking_events?shipment_id=eq.${deleteTarget}`, { method: 'DELETE' });
+    await sb(`shipments?id=eq.${deleteTarget}`, { method: 'DELETE' });
+    showToast('delToast', 'success', `✓ ${deleteTarget} deleted.`);
+    document.getElementById('delId').value = '';
+    deleteTarget = null;
+  } catch (e) { showToast('delToast', 'error', '✕ ' + e.message); }
+}
+
+function closeModal() { document.getElementById('confirmModal').classList.remove('visible'); }
+
+// ── SETTINGS ──
+function saveSettings() {
+  SB_URL = document.getElementById('settUrl').value.trim();
+  SB_KEY = document.getElementById('settKey').value.trim();
+  const newPass = document.getElementById('settPass').value;
+  if (newPass) { ADMIN_PASS = newPass; localStorage.setItem('cfl_pass', newPass); }
+  localStorage.setItem('cfl_url', SB_URL);
+  localStorage.setItem('cfl_key', SB_KEY);
+  showToast('settToast', 'success', '✓ Settings saved.');
+}
+
+// ── TOAST ──
+function showToast(id, type, msg) {
+  const el = document.getElementById(id);
+  if (!msg) { el.classList.remove('visible'); return; }
+  el.className = `toast ${type} visible`;
+  el.textContent = msg;
+  if (type === 'success') setTimeout(() => el.classList.remove('visible'), 4000);
+}
+</script>
+</body>
+</html>

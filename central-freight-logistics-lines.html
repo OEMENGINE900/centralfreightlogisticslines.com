@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Central Freight Logistics Lines</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --charcoal: #1a1a1a;
+    --steel: #2c2c2c;
+    --mid: #444;
+    --muted: #888;
+    --border: #333;
+    --amber: #f5a623;
+    --amber-dim: #b87d1a;
+    --white: #f0ede8;
+    --cream: #e8e4dc;
+    --red: #c0392b;
+    --green: #27ae60;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--amber);
+    color: var(--black);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 6px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--charcoal);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo-block { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: var(--amber);
+    display: grid;
+    place-items: center;
+    clip-path: polygon(0 0, 88% 0, 100% 12%, 100% 100%, 12% 100%, 0 88%);
+  }
+  .logo-icon svg { width: 24px; height: 24px; }
+  .logo-text { line-height: 1.1; }
+  .logo-text .co { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.06em; color: var(--white); }
+  .logo-text .sub { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--amber); text-transform: uppercase; }
+
+  nav { display: flex; gap: 32px; align-items: center; }
+  nav a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--amber); }
+  .nav-cta {
+    background: var(--amber);
+    color: var(--black) !important;
+    padding: 8px 18px;
+    font-weight: 500 !important;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--amber-dim) !important; color: var(--black) !important; }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    background: var(--charcoal);
+    padding: 80px 40px 0;
+    overflow: hidden;
+    min-height: 420px;
+    display: flex;
+    align-items: flex-end;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(245,166,35,0.04) 59px, rgba(245,166,35,0.04) 60px),
+      repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(245,166,35,0.04) 59px, rgba(245,166,35,0.04) 60px);
+    pointer-events: none;
+  }
+  .hero-content { position: relative; z-index: 1; padding-bottom: 56px; }
+  .hero-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hero-tag::before { content: ''; width: 30px; height: 1px; background: var(--amber); display: block; }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 7vw, 96px);
+    line-height: 0.92;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    margin-bottom: 20px;
+  }
+  h1 em { color: var(--amber); font-style: normal; }
+  .hero-desc {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 460px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+  .hero-stats {
+    display: flex; gap: 40px;
+  }
+  .stat-item { border-left: 2px solid var(--amber); padding-left: 14px; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--white); line-height: 1; }
+  .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; }
+
+  /* ── MAIN PANELS ── */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 3px solid var(--amber);
+  }
+
+  /* ── QUOTE FORM ── */
+  .panel {
+    padding: 48px 40px;
+    border-right: 1px solid var(--border);
+  }
+  .panel:last-child { border-right: none; }
+  .panel-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+  .panel h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 0.04em;
+    margin-bottom: 28px;
+    line-height: 1;
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    background: var(--steel);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--amber); }
+  .form-group select option { background: var(--steel); }
+  .form-group input::placeholder { color: var(--mid); }
+
+  .divider-row {
+    display: flex; align-items: center; gap: 12px;
+    margin: 8px 0 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .divider-row::before, .divider-row::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--amber);
+    color: var(--black);
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { background: var(--amber-dim); }
+  .btn-primary:active { transform: scale(0.99); }
+
+  .quote-result {
+    display: none;
+    margin-top: 20px;
+    border: 1px solid var(--amber);
+    padding: 20px;
+    background: rgba(245,166,35,0.05);
+  }
+  .quote-result.visible { display: block; animation: fadeUp 0.3s ease; }
+  .quote-result h4 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    margin-bottom: 12px;
+    color: var(--amber);
+  }
+  .quote-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .quote-line:last-of-type { border-bottom: none; }
+  .quote-line span:first-child { color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; }
+  .quote-line span:last-child { font-weight: 500; }
+  .quote-total span:last-child { color: var(--amber); font-size: 18px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
+
+  /* ── TRACKING PANEL ── */
+  .track-input-row { display: flex; gap: 0; margin-bottom: 28px; }
+  .track-input-row input {
+    flex: 1;
+    background: var(--steel);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 13px 16px;
+    outline: none;
+    letter-spacing: 0.06em;
+    transition: border-color 0.2s;
+  }
+  .track-input-row input:focus { border-color: var(--amber); }
+  .track-input-row input::placeholder { color: var(--mid); }
+  .track-btn {
+    background: var(--amber);
+    color: var(--black);
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0 22px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .track-btn:hover { background: var(--amber-dim); }
+
+  /* ── TIMELINE ── */
+  .track-result { display: none; }
+  .track-result.visible { display: block; animation: fadeUp 0.3s ease; }
+
+  .shipment-header {
+    background: var(--steel);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    border-left: 3px solid var(--amber);
+  }
+  .shipment-header .sh-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+  .shipment-header .sh-route {
+    font-size: 14px; font-weight: 500;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .sh-arrow { color: var(--amber); font-size: 18px; }
+  .sh-badges { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid;
+  }
+  .badge-green { border-color: var(--green); color: var(--green); }
+  .badge-amber { border-color: var(--amber); color: var(--amber); }
+  .badge-muted { border-color: var(--mid); color: var(--muted); }
+
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: var(--border);
+  }
+  .tl-item {
+    position: relative;
+    padding: 0 0 24px 16px;
+    opacity: 0;
+    animation: fadeUp 0.3s ease forwards;
+  }
+  .tl-item:nth-child(1) { animation-delay: 0.05s; }
+  .tl-item:nth-child(2) { animation-delay: 0.12s; }
+  .tl-item:nth-child(3) { animation-delay: 0.19s; }
+  .tl-item:nth-child(4) { animation-delay: 0.26s; }
+  .tl-item:nth-child(5) { animation-delay: 0.33s; }
+  .tl-item:nth-child(6) { animation-delay: 0.40s; }
+  .tl-item:last-child { padding-bottom: 0; }
+
+  .tl-dot {
+    position: absolute;
+    left: -24px; top: 4px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--charcoal);
+  }
+  .tl-dot.done { background: var(--amber); border-color: var(--amber); }
+  .tl-dot.active {
+    background: var(--charcoal);
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.2);
+    animation: pulse 1.8s infinite;
+  }
+  .tl-dot.pending { background: var(--steel); border-color: var(--border); }
+
+  .tl-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .tl-status { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .tl-location { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+
+  .not-found {
+    display: none;
+    padding: 20px;
+    border: 1px solid var(--red);
+    background: rgba(192,57,43,0.06);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--red);
+  }
+  .not-found.visible { display: block; animation: fadeUp 0.3s ease; }
+
+  /* ── SERVICES STRIP ── */
+  .services {
+    background: var(--steel);
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .svc-item {
+    padding: 0 28px 0 0;
+    border-right: 1px solid var(--border);
+    margin-right: 28px;
+  }
+  .svc-item:last-child { border-right: none; margin-right: 0; }
+  .svc-icon { font-size: 22px; margin-bottom: 8px; }
+  .svc-name { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .svc-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--charcoal);
+    border-top: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-left { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: var(--muted); }
+  .footer-left span { color: var(--amber); }
+  .footer-right { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(245,166,35,0.2); }
+    50%       { box-shadow: 0 0 0 6px rgba(245,166,35,0.08); }
+  }
+
+  @media (max-width: 900px) {
+    .panels { grid-template-columns: 1fr; }
+    .panel { border-right: none; border-bottom: 1px solid var(--border); }
+    .services { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .svc-item { border-right: none; margin-right: 0; padding-right: 0; }
+    header { padding: 0 20px; }
+    .hero { padding: 60px 20px 0; }
+    .topbar, .panel, footer { padding-left: 20px; padding-right: 20px; }
+    .services { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span>📍 2847 Peachtree Industrial Blvd, Atlanta GA 30341</span>
+  <span>📞 513-340-9667 &nbsp;|&nbsp; MON–FRI 07:00–19:00 EST</span>
+</div>
+
+<header>
+  <div class="logo-block">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="3" width="15" height="13" rx="1"/>
+        <path d="M16 8h4l3 5v4h-7V8z"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/>
+        <circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="co">Central Freight</div>
+      <div class="sub">Logistics Lines &nbsp;·&nbsp; Est. 2019</div>
+    </div>
+  </div>
+  <nav>
+    <a href="#quote">Quote</a>
+    <a href="#track">Track</a>
+    <a href="#">Services</a>
+    <a href="#">Locations</a>
+    <a href="tel:5133409667" class="nav-cta">Call Now</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tag">LTL &amp; Full Truckload Freight</div>
+    <h1>Freight That<br/><em>Moves America.</em></h1>
+    <p class="hero-desc">Regional and national LTL carrier serving 48 states. Real-time tracking, same-day pickup scheduling, guaranteed transit times.</p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num">48</div>
+        <div class="stat-label">States Covered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">99.2%</div>
+        <div class="stat-label">On-Time Rate</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">14K+</div>
+        <div class="stat-label">Shipments / Month</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="panels" id="quote">
+
+  <!-- QUOTE FORM -->
+  <div class="panel">
+    <div class="panel-label">Step 1</div>
+    <h2>Get a Rate Quote</h2>
+
+    <div class="divider-row">Pickup Location</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" id="pickupCity" placeholder="Atlanta" />
+      </div>
+      <div class="form-group">
+        <label>State</label>
+        <select id="pickupState">
+          <option value="">— State —</option>
+          <option>GA</option><option>FL</option><option>TX</option><option>CA</option>
+          <option>NY</option><option>OH</option><option>IL</option><option>PA</option>
+          <option>NC</option><option>VA</option><option>MD</option><option>TN</option>
+          <option>SC</option><option>AL</option><option>MS</option><option>LA</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Pickup ZIP</label>
+      <input type="text" id="pickupZip" placeholder="30341" maxlength="5" />
+    </div>
+
+    <div class="divider-row">Destination</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" id="destCity" placeholder="Prince Frederick" />
+      </div>
+      <div class="form-group">
+        <label>State</label>
+        <select id="destState">
+          <option value="">— State —</option>
+          <option>GA</option><option>FL</option><option>TX</option><option>CA</option>
+          <option>NY</option><option>OH</option><option>IL</option><option>PA</option>
+          <option>NC</option><option>VA</option><option>MD</option><option>TN</option>
+          <option>SC</option><option>AL</option><option>MS</option><option>LA</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Destination ZIP</label>
+      <input type="text" id="destZip" placeholder="20678" maxlength="5" />
+    </div>
+
+    <div class="divider-row">Freight Details</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Weight (lbs)</label>
+        <input type="number" id="weight" placeholder="500" min="1" />
+      </div>
+      <div class="form-group">
+        <label>Freight Class</label>
+        <select id="freightClass">
+          <option value="">— Select —</option>
+          <option value="50">Class 50</option>
+          <option value="55">Class 55</option>
+          <option value="60">Class 60</option>
+          <option value="65">Class 65</option>
+          <option value="70">Class 70</option>
+          <option value="77.5">Class 77.5</option>
+          <option value="85">Class 85</option>
+          <option value="92.5">Class 92.5</option>
+          <option value="100">Class 100</option>
+          <option value="110">Class 110</option>
+          <option value="125">Class 125</option>
+          <option value="150">Class 150</option>
+          <option value="175">Class 175</option>
+          <option value="200">Class 200</option>
+          <option value="250">Class 250</option>
+          <option value="300">Class 300</option>
+          <option value="400">Class 400</option>
+          <option value="500">Class 500</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Pickup Date</label>
+      <input type="date" id="pickupDate" />
+    </div>
+
+    <button class="btn-primary" onclick="getQuote()">▶ &nbsp;Calculate Freight Rate</button>
+
+    <div class="quote-result" id="quoteResult">
+      <h4>Rate Options</h4>
+      <div class="quote-line">
+        <span>Service Type</span>
+        <span id="qService">—</span>
+      </div>
+      <div class="quote-line">
+        <span>Origin → Destination</span>
+        <span id="qRoute">—</span>
+      </div>
+      <div class="quote-line">
+        <span>Estimated Transit</span>
+        <span id="qTransit">—</span>
+      </div>
+      <div class="quote-line">
+        <span>Weight / Class</span>
+        <span id="qWeight">—</span>
+      </div>
+      <div class="quote-line">
+        <span>Fuel Surcharge</span>
+        <span id="qFuel">—</span>
+      </div>
+      <div class="quote-line quote-total">
+        <span>Total Estimated Rate</span>
+        <span id="qTotal">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACKING PANEL -->
+  <div class="panel" id="track">
+    <div class="panel-label">Track Shipment</div>
+    <h2>Shipment Tracker</h2>
+
+    <div class="track-input-row">
+      <input type="text" id="trackInput" placeholder="Enter PRO# or Tracking ID (e.g. CFL-2025-10947)" />
+      <button class="track-btn" onclick="trackShipment()">Track →</button>
+    </div>
+
+    <div class="not-found" id="notFound">
+      ✕ &nbsp; No shipment found for that tracking number. Please verify and try again.
+    </div>
+
+    <div class="track-result" id="trackResult">
+      <div class="shipment-header">
+        <div class="sh-id" id="trId">—</div>
+        <div class="sh-route">
+          <span id="trOrigin">—</span>
+          <span class="sh-arrow">→</span>
+          <span id="trDest">—</span>
+        </div>
+        <div class="sh-badges">
+          <span class="badge badge-green" id="trStatus">—</span>
+          <span class="badge badge-muted" id="trWeight">—</span>
+          <span class="badge badge-amber" id="trEta">—</span>
+        </div>
+      </div>
+
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<div class="services">
+  <div class="svc-item">
+    <div class="svc-icon">🚛</div>
+    <div class="svc-name">LTL Freight</div>
+    <div class="svc-desc">Less-than-truckload service with guaranteed transit windows across the Southeast and Mid-Atlantic.</div>
+  </div>
+  <div class="svc-item">
+    <div class="svc-icon">📦</div>
+    <div class="svc-name">Full Truckload</div>
+    <div class="svc-desc">Dedicated FTL for time-sensitive or high-volume freight. Door-to-door with real-time GPS.</div>
+  </div>
+  <div class="svc-item">
+    <div class="svc-icon">🏭</div>
+    <div class="svc-name">Warehousing</div>
+    <div class="svc-desc">Atlanta-based cross-dock and short-term storage. Pallet in, pallet out — same day.</div>
+  </div>
+  <div class="svc-item">
+    <div class="svc-icon">⚡</div>
+    <div class="svc-name">Expedited</div>
+    <div class="svc-desc">Critical freight moved same-day or next-day with continuous driver teams and live monitoring.</div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">© 2025 Central Freight Logistics Lines LLC &nbsp;·&nbsp; <span>USDOT 3847261</span> &nbsp;·&nbsp; Atlanta, GA</div>
+  <div class="footer-right">📞 <a href="tel:5133409667" style="color:inherit;text-decoration:none;">513-340-9667</a> &nbsp;|&nbsp; Mon–Fri 07:00–19:00 EST</div>
+</footer>
+
+<script>
+// ── SHIPPING DATABASE ──
+const shipments = {
+  "CFL-2025-10947": {
+    id: "CFL-2025-10947",
+    origin: "Atlanta, GA",
+    destination: "Prince Frederick, MD",
+    destAddress: "109 Auto Dr, Prince Frederick MD 20678",
+    status: "DELIVERED",
+    weight: "1,840 lbs · Class 85",
+    eta: "ETA: Delivered Mar 19",
+    events: [
+      { time: "Mar 14 · 09:14 EST", status: "Shipment Picked Up", location: "Atlanta, GA 30341", state: "done" },
+      { time: "Mar 14 · 18:45 EST", status: "Departed Origin Terminal", location: "Atlanta, GA — CFL Terminal #4", state: "done" },
+      { time: "Mar 15 · 23:30 EST", status: "Arrived at Relay Terminal", location: "Charlotte, NC — CFL Terminal #9", state: "done" },
+      { time: "Mar 16 · 06:10 EST", status: "Departed Relay Terminal", location: "Charlotte, NC", state: "done" },
+      { time: "Mar 18 · 14:22 EST", status: "Out for Delivery", location: "Prince Frederick, MD — Last Mile Hub", state: "done" },
+      { time: "Mar 19 · 10:47 EST", status: "Delivered — Proof of Delivery Obtained", location: "109 Auto Dr, Prince Frederick MD 20678", state: "done" },
+    ]
+  },
+  "CFL-2025-10948": {
+    id: "CFL-2025-10948",
+    origin: "Memphis, TN",
+    destination: "Jacksonville, FL",
+    destAddress: "Jacksonville, FL 32099",
+    status: "IN TRANSIT",
+    weight: "620 lbs · Class 70",
+    eta: "ETA: Apr 29",
+    events: [
+      { time: "Apr 26 · 11:00 EST", status: "Shipment Picked Up", location: "Memphis, TN", state: "done" },
+      { time: "Apr 26 · 20:30 EST", status: "Departed Origin Terminal", location: "Memphis, TN — CFL Terminal #2", state: "done" },
+      { time: "Apr 27 · 08:15 EST", status: "In Transit — On Route", location: "Birmingham, AL", state: "active" },
+      { time: "Apr 28 · ~18:00 EST", status: "Expected Relay Arrival", location: "Atlanta, GA — CFL Terminal #4", state: "pending" },
+      { time: "Apr 29 · ~10:00 EST", status: "Estimated Delivery", location: "Jacksonville, FL", state: "pending" },
+    ]
+  }
+};
+
+function trackShipment() {
+  const raw = document.getElementById('trackInput').value.trim().toUpperCase();
+  const result = document.getElementById('trackResult');
+  const notFound = document.getElementById('notFound');
+  const tl = document.getElementById('timeline');
+
+  result.classList.remove('visible');
+  notFound.classList.remove('visible');
+  tl.innerHTML = '';
+
+  const data = shipments[raw];
+  if (!data) {
+    notFound.classList.add('visible');
+    return;
+  }
+
+  document.getElementById('trId').textContent = data.id;
+  document.getElementById('trOrigin').textContent = data.origin;
+  document.getElementById('trDest').textContent = data.destination;
+  const sb = document.getElementById('trStatus');
+  sb.textContent = data.status;
+  sb.className = 'badge ' + (data.status === 'DELIVERED' ? 'badge-green' : 'badge-amber');
+  document.getElementById('trWeight').textContent = data.weight;
+  document.getElementById('trEta').textContent = data.eta;
+
+  data.events.forEach(ev => {
+    const item = document.createElement('div');
+    item.className = 'tl-item';
+    item.innerHTML = `
+      <div class="tl-dot ${ev.state}"></div>
+      <div class="tl-time">${ev.time}</div>
+      <div class="tl-status">${ev.status}</div>
+      <div class="tl-location">${ev.location}</div>
+    `;
+    tl.appendChild(item);
+  });
+
+  result.classList.add('visible');
+}
+
+// ── ENTER KEY ON TRACK ──
+document.getElementById('trackInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') trackShipment();
+});
+
+// ── QUOTE ENGINE ──
+const zoneMap = {
+  "GA": { "GA":1, "FL":1, "AL":1, "SC":1, "TN":2, "NC":2, "MS":2, "LA":2,
+           "VA":3, "MD":3, "OH":3, "TX":3, "NY":4, "PA":4, "IL":4, "CA":5 },
+};
+const transitDays = { 1:1, 2:2, 3:3, 4:4, 5:6 };
+const classMultiplier = {
+  "50":1.0,"55":1.05,"60":1.1,"65":1.15,"70":1.2,"77.5":1.28,"85":1.36,
+  "92.5":1.45,"100":1.55,"110":1.65,"125":1.8,"150":2.0,"175":2.2,
+  "200":2.5,"250":2.9,"300":3.3,"400":3.9,"500":4.5
+};
+
+function getQuote() {
+  const pCity = document.getElementById('pickupCity').value.trim();
+  const pState = document.getElementById('pickupState').value;
+  const dCity = document.getElementById('destCity').value.trim();
+  const dState = document.getElementById('destState').value;
+  const weight = parseFloat(document.getElementById('weight').value) || 0;
+  const fc = document.getElementById('freightClass').value;
+
+  if (!pState || !dState || !weight || !fc) {
+    alert('Please fill in all fields to get a quote.');
+    return;
+  }
+
+  const originZones = zoneMap[pState] || zoneMap["GA"];
+  const zone = originZones[dState] || 3;
+  const transit = transitDays[zone] || 4;
+  const baseRate = weight * (0.045 + zone * 0.008);
+  const clsMult = classMultiplier[fc] || 1.5;
+  const subtotal = baseRate * clsMult;
+  const fuel = subtotal * 0.192;
+  const total = subtotal + fuel;
+
+  document.getElementById('qService').textContent = 'CFL Standard LTL';
+  document.getElementById('qRoute').textContent = `${pCity || pState} → ${dCity || dState}`;
+  document.getElementById('qTransit').textContent = `${transit}–${transit+1} business days`;
+  document.getElementById('qWeight').textContent = `${weight.toLocaleString()} lbs · Class ${fc}`;
+  document.getElementById('qFuel').textContent = `$${fuel.toFixed(2)} (19.2% FSC)`;
+  document.getElementById('qTotal').textContent = `$${total.toFixed(2)}`;
+
+  document.getElementById('quoteResult').classList.add('visible');
+}
+
+// default pickup date to tomorrow
+const tmrw = new Date(); tmrw.setDate(tmrw.getDate() + 1);
+document.getElementById('pickupDate').value = tmrw.toISOString().split('T')[0];
+</script>
+</body>
+</html>
